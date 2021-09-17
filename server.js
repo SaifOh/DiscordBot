@@ -29,32 +29,36 @@ client.on('message', async message => {
 
     const serverQueue = queue.get(message.guild.id);
     console.log(message.content)
-    if (message.content.startsWith(`${prefix}play`)) {
+    if (message.content.startsWith(`${prefix}play `) || message.content.startsWith(`${prefix}p `)) {
         execute(message, serverQueue);
         return;
-      } else if (message.content.startsWith(`${prefix}skip`)) {
+    } else if (message.content.startsWith(`${prefix}skip`) || message.content.startsWith(`${prefix}s`)) {
         skip(message, serverQueue);
         return;
-      } else if (message.content.startsWith(`${prefix}stop`)) {
+    } else if (message.content.startsWith(`${prefix}disconnect`)) {
         stop(message, serverQueue);
         return;
-      } else if(message.content.startsWith(`${prefix}queue`)){
-          var msg ="``` \n Current Music List: \n";
-          
+    } else if (message.content.startsWith(`${prefix}queue`) || message.content.startsWith(`${prefix}q`)) {
+        var msg = "``` \n Current Music List: \n";
+
         //message.channel.send("```"+serverQueue.songs+"```"); 
-        var c=0;
-        serverQueue.songs.forEach(i =>{
+        var c = 0;
+        serverQueue.songs.forEach(i => {
             c++;
             console.log(i);
-            msg = msg.concat(c+"-"+i.title+"\n");
+            msg = msg.concat(c + "-" + i.title + "\n");
         })
         msg = msg.concat("```");
         message.channel.send(msg)
         return;
-      }else {
+    } else if (message.content.startsWith(`${prefix}remove `) || message.content.startsWith(`${prefix}r `)) {
+        remove(message, serverQueue);
+    } else if (message.content.startsWith(`${prefix}clear`)) {
+        clear(message, serverQueue);
+    }else {
         message.channel.send("You need to enter a valid command!");
-      }
-      
+    }
+
 })
 
 
@@ -135,6 +139,39 @@ function play(guild, song) {
 }
 
 
+//re-code this in a way you check count of songs in queue, start popping til you reach number you want to remove, pop it without pushing into a new queue. and there u go? xd
+//idk  try to fix later thx.
+//nvm, found out I can just use splice.
+function remove(message, serverQueue) {
+    if (!message.member.voice.channel)
+        return message.channel.send(
+            "You have to be in a voice channel to skip the current track..."
+        );
+    if (!serverQueue)
+        return message.channel.send("Nothing's playing...");
+    console.log(serverQueue.Songs);
+
+    if (message.content.match(/-remove \d/) || message.content.match(/-r \d/)) {
+        //var regex = new RegExp(prefix.replace(/[\-\_\$\.]/g, f => '\\'+f) + 'remove (\\d+)', 'g').exec(' e --remove 2 f')
+        console.log("I'm here... trying to dequeue??")
+        try{
+            serverQueue.songs.splice(message.content.match(/\d/)-1,1);
+            message.channel.send("Song removed from queue!");
+        }
+        catch(err){
+            message.channel.send("Error: "+err);
+        }
+        
+    }
+    //serverQueue.connection.dispatcher.end();
+}
+
+function clear(message,serverQueue){
+    //console.log(serverQueue.songs.size());
+        serverQueue.songs = [];
+    console.log(serverQueue.songs);
+    message.channel.send("Cleared current queue");
+}
 
 function skip(message, serverQueue) {
     if (!message.member.voice.channel)
