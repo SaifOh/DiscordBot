@@ -62,181 +62,6 @@ client.on("message", async (message) => {
   }
 });
 
-/*
-module.exports = function search(message) {
-    let query = message.content.replace(/^[\S]+[\s]+/, '');
-    console.log(query);
-    ytscrape.search(query, {
-        type : 'video',
-        limit : 1
-    }).then(function(results){
-        console.log(results[0]);
-        let videoID = results[0].id;
-        let title = results[0].title;
-        console.log(videoID);
-        message.client.music.queue.add(videoID, message);
-        message.channel.send('Adding `' + title + '` to the queue.');
-        console.log(message.client.songQueue);
-        if (!message.client.playing) message.client.music.next(message);
-    }, function(err){
-        console.log(err);
-    });
-};
-https://www.youtube.com/watch?v=c4cErkTY9xQ
- */
-//queueConstruct.songs.push(song);
-
-async function playlist(message, serverQueue) {
-  //Let's see if we can connect to voice channel first
-  const voiceChannel = message.member.voice.channel;
-  if (!voiceChannel) return message.channel.send("Join a channel first dummy.");
-  const permissions = voiceChannel.permissionsFor(message.client.user);
-  if (!permissions.has("CONNECT") || !permissions.has("SPEAK")) {
-    return message.channel.send("No perms to join/speak in voice");
-  }
-  //Check if there's a serverQueue then decide what to do...
-  if (!serverQueue) {
-    const queueConstruct = {
-      textChannel: message.channel,
-      voiceChannel: voiceChannel,
-      connection: null,
-      songs: [],
-      volume: 5,
-      playing: true,
-    };
-    queue.set(message.guild.id, queueConstruct);
-
-    let playlistID = message.content.slice(41);
-    //console.log(playlistID);
-    const playlists = await ytpl(playlistID, function (err) {
-      if (err) throw err;
-    });
-    //console.log(playlists);
-    for (item in playlists.items) {
-      let videoID = item.id;
-      //const songInfo = await ytdl.getInfo(item);
-      //console.log(playlists.items[item]);
-      //console.log(item.title + " " + item.url);
-      const song = {
-        title: playlists.items[item].title,
-        url: playlists.items[item].url,
-      };
-      //let videoID = playlist.items[item].id;
-
-      queueConstruct.songs.push(song);
-      //message.client.music.queue.add(videoID, message);
-    }
-    console.log(queueConstruct);
-    message.channel.send("Playlist is being queued.");
-    console.log(message.client.songQueue);
-
-    try {
-      // Here we try to join the voicechat and save our connection into our object.
-      var connection = await voiceChannel.join();
-      queueConstruct.connection = connection;
-      // Calling the play function to start a song
-      play(message.guild, queueConstruct.songs[0]);
-    } catch (err) {
-      // Printing the error message if the bot fails to join the voicechat
-      console.log(err);
-      queue.delete(message.guild.id);
-      return message.channel.send(err);
-    }
-  } else {
-    let playlistID = message.content.slice(41);
-    console.log(playlistID);
-    const playlists = await ytpl(playlistID, function (err) {
-      if (err) throw err;
-    });
-    console.log(playlists);
-    for (item in playlists.items) {
-      let videoID = item.id;
-      //const songInfo = await ytdl.getInfo(item);
-      let song = {
-        title: item.title,
-        url: item.url,
-      };
-      //let videoID = playlist.items[item].id;
-      //console.log(queueConstruct);
-      //queueConstruct.songs.push(song);
-      serverQueue.songs.push(song);
-     // console.log(serverQueue.songs);
-      return message.channel.send(`${song.title} has been added to the queue!`);
-    }
-  }
-}
-
-async function search(message, serverQueue) {
-  //Search Query check
-  let query = message.content.replace(/^[\S]+[\s]+/, "");
-  //console.log(query +" we're here btw");
-
-  //Voice Channel checks
-  const voiceChannel = message.member.voice.channel;
-  if (!voiceChannel) return message.channel.send("Join a channel first dummy.");
-  const permissions = voiceChannel.permissionsFor(message.client.user);
-  if (!permissions.has("CONNECT") || !permissions.has("SPEAK")) {
-    return message.channel.send("No perms to join/speak in voice");
-  }
-  //Lets search first for the song see if it works
-  var yvideo={
-      title: '',
-      url: '',
-  };
-  await ytscrape
-    .search(query, {
-      type: "video",
-      limit: 1,
-    })
-    .then(
-      function (results) {
-        //console.log(results.videos);
-        let videoID = results.videos[0].id;
-        let videoURL = results.videos[0].link;
-        let title = results.videos[0].title;
-        yvideo = {
-          title: title,
-          url: videoURL,
-        };
-        //let videoID = playlist.items[item].id;
-        //console.log(message.client.songQueue);
-      },
-      function (err) {
-        console.log(err);
-      }
-    );
-    //console.log("yvideo is "+ yvideo.title + " " + yvideo.url);
-    const song = yvideo;
-  //Check serverQueue
-  if (!serverQueue) {
-    const queueConstruct = {
-      textChannel: message.channel,
-      voiceChannel: voiceChannel,
-      connection: null,
-      songs: [],
-      volume: 5,
-      playing: true,
-    };
-    queue.set(message.guild.id, queueConstruct);
-    queueConstruct.songs.push(song);
-
-    try {
-        // Here we try to join the voicechat and save our connection into our object.
-        var connection = await voiceChannel.join();
-        queueConstruct.connection = connection;
-        // Calling the play function to start a song
-        play(message.guild, queueConstruct.songs[0]);
-      } catch (err) {
-        // Printing the error message if the bot fails to join the voicechat
-        console.log(err);
-        queue.delete(message.guild.id);
-        return message.channel.send(err);
-      }
-  } else {
-    serverQueue.songs.push(song);
-    message.channel.send("Adding `" + song.title + "` to the queue.");
-  }
-}
 
 async function execute(message, serverQueue) {
   let args = message.content.split(" ");
@@ -299,13 +124,155 @@ async function execute(message, serverQueue) {
   }
 }
 
+
+async function playlist(message, serverQueue) {
+  //Let's see if we can connect to voice channel first
+  const voiceChannel = message.member.voice.channel;
+  if (!voiceChannel) return message.channel.send("Join a channel first dummy.");
+  const permissions = voiceChannel.permissionsFor(message.client.user);
+  if (!permissions.has("CONNECT") || !permissions.has("SPEAK")) {
+    return message.channel.send("No perms to join/speak in voice");
+  }
+  //Check if there's a serverQueue then decide what to do...
+  if (!serverQueue) {
+    const queueConstruct = {
+      textChannel: message.channel,
+      voiceChannel: voiceChannel,
+      connection: null,
+      songs: [],
+      volume: 5,
+      playing: true,
+    };
+    queue.set(message.guild.id, queueConstruct);
+
+    let playlistID = message.content.slice(41);
+    //console.log(playlistID);
+    const playlists = await ytpl(playlistID, function (err) {
+      if (err) throw err;
+    });
+    //console.log(playlists);
+    for (item in playlists.items) {
+      let videoID = item.id;
+      const song = {
+        title: playlists.items[item].title,
+        url: playlists.items[item].url,
+      };
+      queueConstruct.songs.push(song);
+    }
+    console.log(queueConstruct);
+    message.channel.send("Playlist is being queued.");
+    console.log(message.client.songQueue);
+
+    try {
+      // Here we try to join the voicechat and save our connection into our object.
+      var connection = await voiceChannel.join();
+      queueConstruct.connection = connection;
+      // Calling the play function to start a song
+      play(message.guild, queueConstruct.songs[0]);
+    } catch (err) {
+      // Printing the error message if the bot fails to join the voicechat
+      console.log(err);
+      queue.delete(message.guild.id);
+      return message.channel.send(err);
+    }
+  } else {
+    let playlistID = message.content.slice(41);
+    console.log(playlistID);
+    const playlists = await ytpl(playlistID, function (err) {
+      if (err) throw err;
+    });
+    console.log(playlists);
+    for (item in playlists.items) {
+      let videoID = item.id;
+      //const songInfo = await ytdl.getInfo(item);
+      let song = {
+        title: item.title,
+        url: item.url,
+      };
+      //let videoID = playlist.items[item].id;
+      serverQueue.songs.push(song);
+      return message.channel.send(`${song.title} has been added to the queue!`);
+    }
+  }
+}
+
+async function search(message, serverQueue) {
+  //Search Query check
+  let query = message.content.replace(/^[\S]+[\s]+/, "");
+
+  //Voice Channel checks
+  const voiceChannel = message.member.voice.channel;
+  if (!voiceChannel) return message.channel.send("Join a channel first dummy.");
+  const permissions = voiceChannel.permissionsFor(message.client.user);
+  if (!permissions.has("CONNECT") || !permissions.has("SPEAK")) {
+    return message.channel.send("No perms to join/speak in voice");
+  }
+  //Lets search first for the song see if it works
+  var yvideo={
+      title: '',
+      url: '',
+  };
+  await ytscrape
+    .search(query, {
+      type: "video",
+      limit: 1,
+    })
+    .then(
+      function (results) {
+        //console.log(results.videos);
+        let videoID = results.videos[0].id;
+        let videoURL = results.videos[0].link;
+        let title = results.videos[0].title;
+        yvideo = {
+          title: title,
+          url: videoURL,
+        };
+      },
+      function (err) {
+        console.log(err);
+      }
+    );
+
+    const song = yvideo;
+  //Check serverQueue
+  if (!serverQueue) {
+    const queueConstruct = {
+      textChannel: message.channel,
+      voiceChannel: voiceChannel,
+      connection: null,
+      songs: [],
+      volume: 5,
+      playing: true,
+    };
+    queue.set(message.guild.id, queueConstruct);
+    queueConstruct.songs.push(song);
+
+    try {
+        // Here we try to join the voicechat and save our connection into our object.
+        var connection = await voiceChannel.join();
+        queueConstruct.connection = connection;
+        // Calling the play function to start a song
+        play(message.guild, queueConstruct.songs[0]);
+      } catch (err) {
+        // Printing the error message if the bot fails to join the voicechat
+        console.log(err);
+        queue.delete(message.guild.id);
+        return message.channel.send(err);
+      }
+  } else {
+    serverQueue.songs.push(song);
+    message.channel.send("Adding `" + song.title + "` to the queue.");
+  }
+}
+
+
+//Send the currently playing track & queue as a list
 function queue1(message, serverQueue) {
   var msg = "``` \n Current Music List: \n";
   if (!serverQueue) {
     message.channel.send("Queue is empty");
     return;
   }
-  //message.channel.send("```"+serverQueue.songs+"```");
   else {
     var c = 0;
     serverQueue.songs.forEach((i) => {
@@ -319,6 +286,7 @@ function queue1(message, serverQueue) {
   }
 }
 
+//Plays the music being requested by execute() on the bot
 function play(guild, song) {
   const serverQueue = queue.get(guild.id);
   console.log(serverQueue);
@@ -338,18 +306,9 @@ function play(guild, song) {
   dispatcher.setVolumeLogarithmic(serverQueue.volume / 5);
   serverQueue.textChannel.send(`Start playing: **${song.title}**`);
 }
-/* if (!serverQueue) {
-    // Creating the contract for our queue
-    const queueConstruct = {
-        textChannel: message.channel,
-        voiceChannel: voiceChannel,
-        connection: null,
-        songs: [],
-        volume: 5,
-        playing: true,
-    };
-    // Setting the queue using our contract
-    queue.set(message.guild.id, queueC */
+
+//Pauses the currently playing track
+//*Currently is broken
 function pause(guild, song) {
   const serverQueue = queue.get(guild.id);
 
@@ -367,12 +326,12 @@ function pause(guild, song) {
   //serverQueue.connection.dispatcher.pause();
   serverQueue.textChannel.send(`Paused: **${song.title}**`);
 }
-
+//Resumes the currently playing track if paused
+//*Currently is broken
 function resume(guild, song) {
   const serverQueue = queue.get(guild.id);
   if (!song) {
     serverQueue.textChannel.send(`Nothing is playing.`);
-    //serverQueue.voiceChannel.leave();
     queue.delete(guild.id);
     return;
   }
@@ -382,9 +341,12 @@ function resume(guild, song) {
   serverQueue.textChannel.send(`Resume playing: **${song.title}**`);
 }
 
+
 //re-code this in a way you check count of songs in queue, start popping til you reach number you want to remove, pop it without pushing into a new queue. and there u go? xd
 //idk  try to fix later thx.
 //nvm, found out I can just use splice.
+//Remove song at index from Queue
+//var regex = new RegExp(prefix.replace(/[\-\_\$\.]/g, f => '\\'+f) + 'remove (\\d+)', 'g').exec(' e --remove 2 f')
 function remove(message, serverQueue) {
   if (!message.member.voice.channel)
     return message.channel.send(
@@ -394,7 +356,7 @@ function remove(message, serverQueue) {
   console.log(serverQueue.Songs);
 
   if (message.content.match(/-remove \d+/) || message.content.match(/-r \d+/)) {
-    //var regex = new RegExp(prefix.replace(/[\-\_\$\.]/g, f => '\\'+f) + 'remove (\\d+)', 'g').exec(' e --remove 2 f')
+    
     console.log("I'm here... trying to dequeue??");
     try {
       serverQueue.songs.splice(message.content.match(/\d+/) - 1, 1);
@@ -403,16 +365,16 @@ function remove(message, serverQueue) {
       message.channel.send("Error: " + err);
     }
   }
-  //serverQueue.connection.dispatcher.end();
 }
 
+//Clears the current queue
 function clear(message, serverQueue) {
-  //console.log(serverQueue.songs.size());
   serverQueue.songs = [];
   console.log(serverQueue.songs);
   message.channel.send("Cleared current queue");
 }
 
+//Skips current playing track
 function skip(message, serverQueue) {
   if (!message.member.voice.channel)
     return message.channel.send(
@@ -422,6 +384,7 @@ function skip(message, serverQueue) {
   serverQueue.connection.dispatcher.end();
 }
 
+//Stops playing and disconnects
 function stop(message, serverQueue) {
   if (!message.member.voice.channel)
     return message.channel.send(
