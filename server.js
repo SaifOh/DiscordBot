@@ -3,6 +3,7 @@ const { prefix, token } = require("./config.json");
 const ytdl = require("ytdl-core");
 const ytscrape = require("scrape-youtube").default;
 const ytpl = require("ytpl");
+const { OpusEncoder } = require('@discordjs/opus');
 
 const client = new Discord.Client();
 
