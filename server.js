@@ -290,7 +290,7 @@ function queue1(message, serverQueue) {
 //Plays the music being requested by execute() on the bot
 function play(guild, song) {
   const serverQueue = queue.get(guild.id);
-  console.log(serverQueue);
+  //console.log(serverQueue);
   if (!song) {
     serverQueue.voiceChannel.leave();
     queue.delete(guild.id);
@@ -354,7 +354,7 @@ function remove(message, serverQueue) {
       "You have to be in a voice channel to skip the current track..."
     );
   if (!serverQueue) return message.channel.send("Nothing's playing...");
-  console.log(serverQueue.Songs);
+  //console.log(serverQueue.Songs);
 
   if (message.content.match(/-remove \d+/) || message.content.match(/-r \d+/)) {
     

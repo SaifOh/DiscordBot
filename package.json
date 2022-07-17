@@ -1,7 +1,7 @@
 {
   "dependencies": {
-    "@discordjs/opus": "^0.5.3",
-    "discord.js": "12.5.3",
+    "@discordjs/opus": "github:discordjs/opus",
+    "discord.js": "^12.5.3",
     "ffmpeg-static": "^4.4.0",
     "scrape-youtube": "^2.1.9",
     "ytdl-core": "^4.9.1",
